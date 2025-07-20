@@ -12,7 +12,7 @@ console.log(MONGO_URI);
 
 const connectDB = async () => {
   try { 
-    await mongoose.connect("mongodb+srv://affanbajwa18:mdb-cs-m-e-p-2187@cluster01.65oxore.mongodb.net/?retryWrites=true&w=majority&appName=Cluster01");
+    await mongoose.connect(MONGO_URI);
     console.log('mongodb connection success!');
   } catch (err) {
     console.log('mongodb connection failed!', err.message);
