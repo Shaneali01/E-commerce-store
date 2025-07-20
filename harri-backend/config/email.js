@@ -2,40 +2,43 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 const { secret } = require('./secret');
 
-// sendEmail
-module.exports.sendEmail = (body, res, message) => {
-  const transporter = nodemailer.createTransport({
-    host: secret.email_host,
-    service: secret.email_service,
-    port: secret.email_port,
-    secure: true,
-    auth: {
-      user: secret.email_user,
-      pass: secret.email_pass,
-    },
-  });
+// Promisify transporter.verify for async/await
+const verifyTransporter = (transporter) =>
+    new Promise((resolve, reject) => {
+        transporter.verify((err, success) => {
+            if (err) reject(err);
+            else resolve(success);
+        });
+    });
 
-  transporter.verify(function (err, success) {
-    if (err) {
-      res.status(403).send({
-        message: `Error happen when verify ${err.message}`,
-      });
-      console.log(err.message);
-    } else {
-      console.log('Server is ready to take our messages');
-    }
-  });
+module.exports.sendEmail = async (body, res, message) => {
+    try {
+        // Create transporter with Gmail settings
+        const transporter = nodemailer.createTransport({
+            service: secret.email_service, // "gmail"
+            host: secret.email_host, // "smtp.gmail.com"
+            port: parseInt(secret.email_port), // 587
+            secure: secret.email_port === "465", // false for 587, true for 465
+            auth: {
+                user: secret.email_user, // medicalassistant780@gmail.com
+                pass: secret.email_pass, // srst nmbc zxqu qxey
+            },
+        });
 
-  transporter.sendMail(body, (err, data) => {
-    if (err) {
-      res.status(403).send({
-        message: `Error happen when sending email ${err.message}`,
-      });
-    } else {
-      res.send({
-        message: message,
-      });
+        // Verify transporter
+        await verifyTransporter(transporter);
+        console.log('Server is ready to take our messages');
+
+        // Send email
+        const info = await transporter.sendMail(body);
+        console.log('Email sent:', info.messageId);
+
+        // Send single response
+        return res.send({ message });
+    } catch (error) {
+        console.error('Email error:', error.message);
+        return res.status(403).send({
+            message: `Error: ${error.message}`,
+        });
     }
-  });
 };
-

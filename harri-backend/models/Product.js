@@ -19,7 +19,7 @@ const productSchema = mongoose.Schema({
   },
   children:{
     type:String,
-    required: true,
+    required: false,
     trim:true,
   },
   tags: [String],

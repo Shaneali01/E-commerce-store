@@ -40,6 +40,9 @@ router.get("/get/:id", getStaffById);
 
 // update a staff
 router.patch("/update-stuff/:id", updateStaff);
+router.get("/test", (req, res) => {
+  res.send("Admin route is working");
+});
 
 //update staf status
 // router.put("/update-status/:id", updatedStatus);

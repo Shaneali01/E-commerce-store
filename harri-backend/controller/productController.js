@@ -2,7 +2,7 @@ const Product = require("../models/Product");
 const Brand = require("../models/Brand");
 const Category = require("../models/Category");
 const ApiError = require("../errors/api-error");
-
+const mongoose=require("mongoose")
 // addAllProducts
 module.exports.addProduct = async (req, res, next) => {
   try {
@@ -125,24 +125,40 @@ exports.deleteProduct = async (req, res, next) => {
 
 exports.updateProduct = async (req, res, next) => {
   try {
-    const isExist = await Product.findOne({ _id: req.params.id });
+      const { id } = req.params;
 
-    if (!isExist) {
-      throw new ApiError(404, "Product not found !");
-    }
-
-    const result = await Product.findOneAndUpdate(
-      { _id: req.params.id },
-      req.body,
-      {
-        new: true,
+      // Validate ID format
+      if (!mongoose.isValidObjectId(id)) {
+          console.log('Invalid ObjectId:', id); // Debug
+          throw new ApiError(400, `Invalid product ID format: ${id}`);
       }
-    );
-    res.status(200).json({
-      success: true,
-      data: result,
-    });
+
+      // Check if product exists
+      const isExist = await Product.findOne({ _id: id });
+      if (!isExist) {
+          throw new ApiError(404, 'Product not found');
+      }
+
+      // Update product
+      const result = await Product.findOneAndUpdate(
+          { _id: id },
+          { $set: req.body },
+          { new: true, runValidators: true }
+      );
+      console.log('Update result:', result); // Debug
+
+      if (!result) {
+          throw new ApiError(404, 'Product update failed');
+      }
+
+      res.status(200).json({
+          success: true,
+          message: 'Product updated successfully',
+          data: result,
+      });
   } catch (error) {
-    next(error);
+      console.error('Edit product error:', error.message);
+      next(error);
   }
 };
+

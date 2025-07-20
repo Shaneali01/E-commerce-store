@@ -120,8 +120,8 @@ const confirmAdminForgetPass = async (req, res,next) => {
       });
     }
 
-    const expired = new Date() > new Date(user.confirmationTokenExpires);
-
+    const expired = new Date() > new Date(admin.confirmationTokenExpires);
+console.log(token)
     if (expired) {
       return res.status(401).json({
         status: "fail",
